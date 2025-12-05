@@ -8,26 +8,45 @@
   #userInput { width: 70%; padding: 5px; }
   button { padding: 5px 10px; }
   p { margin: 2px 0; }
+  .user { font-weight: bold; }
+  .bot { color: #003366; }
 </style>
 </head>
 <body>
 
 <div id="chatbox"></div>
-<input id="userInput" placeholder="Ask a question..." />
+<input id="userInput" placeholder="Ask me a question..." />
 <button onclick="send()">Send</button>
 
 <script>
-function send() {
+async function send() {
     const text = document.getElementById("userInput").value;
     if (!text) return;
 
     const chatbox = document.getElementById("chatbox");
-    chatbox.innerHTML += `<p><b>You:</b> ${text}</p>`;
+    chatbox.innerHTML += `<p class="user"><b>You:</b> ${text}</p>`;
     document.getElementById("userInput").value = '';
-
-    // Temporary: mock response
-    chatbox.innerHTML += `<p><b>Bot:</b> This is a placeholder answer.</p>`;
     chatbox.scrollTop = chatbox.scrollHeight;
+
+    try {
+        const response = await fetch("https://defaultd2033364dec34a1c97723f41ca7c4b.75.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b72141ef3fb04ec6976860410d176900/triggers/manual/paths/invoke?api-version=1", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                question: text,
+                userId: "PowerBIUser"
+            })
+        });
+
+        const result = await response.json();
+
+        chatbox.innerHTML += `<p class="bot"><b>Bot:</b> ${result.answer || "No response received."}</p>`;
+        chatbox.scrollTop = chatbox.scrollHeight;
+
+    } catch (err) {
+        chatbox.innerHTML += `<p class="bot"><b>Bot:</b> Error contacting the server.</p>`;
+        console.error(err);
+    }
 }
 </script>
 
